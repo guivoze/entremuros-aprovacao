@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Entremuros — Aprovação</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--bg:#0e0e10;--panel:#17171a;--line:#2a2a2e;--tx:#e8e8ea;--dim:#9a9aa0;--acc:#c9a24b;--red:#e5534b;--ok:#7fc97f}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 -apple-system,"SF Pro",sans-serif;height:100vh;display:flex}
+  aside{width:250px;min-width:250px;border-right:1px solid var(--line);padding:14px 10px 14px 14px;overflow-y:auto}
+  aside h1{font-size:15px;margin:0 0 12px;color:var(--acc);letter-spacing:.4px}
+  details{margin-bottom:2px}
+  details details{margin-left:10px}
+  summary{cursor:pointer;padding:6px 8px;border-radius:7px;font-weight:600;font-size:13px;color:var(--tx);list-style:none;display:flex;align-items:center;gap:6px;user-select:none}
+  summary::before{content:"▸";font-size:10px;color:var(--dim);transition:transform .15s}
+  details[open]>summary::before{transform:rotate(90deg)}
+  summary:hover{background:var(--panel)}
+  summary .n{margin-left:auto;background:var(--line);border-radius:9px;padding:0 7px;font-size:11px;color:var(--dim)}
+  .vid{padding:7px 9px;border-radius:7px;cursor:pointer;color:var(--dim);margin:1px 0 1px 18px;font-size:12.5px;line-height:1.35}
+  .vid:hover{background:var(--panel)}
+  .vid.on{background:var(--panel);color:var(--tx);border-left:3px solid var(--acc);padding-left:6px}
+  .vid .meta{display:block;font-size:11px;color:var(--dim)}
+  .vid .n{display:inline-block;background:var(--line);border-radius:9px;padding:0 7px;font-size:11px;margin-left:5px}
+  .tag{display:inline-block;font-size:10px;font-weight:700;border-radius:5px;padding:0 5px;margin-left:5px;vertical-align:1px}
+  .tag.aprovado{background:#1d3320;color:var(--ok)}
+  .tag.novo{background:#33291d;color:var(--acc)}
+  main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .stage{background:#000;display:flex;justify-content:center;align-items:center;max-height:62vh}
+  video{width:100%;max-height:62vh;outline:none}
+  .bar{display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  button{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:7px 13px;font:600 13px -apple-system,sans-serif;cursor:pointer}
+  button:hover{border-color:var(--acc)}
+  button.acc{background:var(--acc);color:#111;border-color:var(--acc)}
+  .topbar{display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:linear-gradient(to bottom,#1c1710,#141013)}
+  .topbar button.big{font-size:14px;padding:9px 17px}
+  .topinfo{color:var(--dim);font-size:12px}
+  .topinfo b{color:var(--acc);font-weight:700}
+  .hint{color:var(--dim);font-size:12px;margin-left:auto}
+  .cap{color:var(--tx);font-size:12.5px;margin:0 0 8px;line-height:1.45}
+  .cap b{color:var(--acc)}
+  #list{flex:1;overflow-y:auto;padding:10px 14px}
+  .c{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:8px}
+  .c .tc{font:700 13px ui-monospace,monospace;color:var(--acc);cursor:pointer;white-space:nowrap;padding-top:7px}
+  .c .tc:hover{text-decoration:underline}
+  .c textarea{flex:1;background:transparent;border:none;color:var(--tx);font:14px/1.45 -apple-system,sans-serif;resize:vertical;min-height:34px;outline:none;padding-top:7px}
+  .c .x{color:var(--dim);cursor:pointer;font-size:16px;padding:6px}
+  .c .x:hover{color:var(--red)}
+  #out{display:none;margin:0 14px 14px;background:var(--panel);border:1px solid var(--acc);border-radius:10px;padding:10px}
+  #out textarea{width:100%;height:110px;background:#0a0a0c;color:#9fdf9f;border:1px solid var(--line);border-radius:6px;font:12px ui-monospace,monospace;padding:8px}
+  .ok{color:var(--ok);font-size:12px}
+  .spd{display:flex;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:2px}
+  .spd button{border:none;background:transparent;padding:5px 9px;border-radius:6px;font-size:12px}
+  .spd button.on{background:var(--acc);color:#111}
+  /* r9.2 (Gui): botão de ajuda + home explicativa */
+  .helpbtn{position:fixed;right:16px;bottom:16px;z-index:60;width:44px;height:44px;border-radius:50%;
+    background:var(--acc);color:#111;border:none;font:800 20px -apple-system,sans-serif;cursor:pointer;
+    box-shadow:0 4px 16px rgba(0,0,0,.5)}
+  .helpbtn:hover{filter:brightness(1.08)}
+  #help{position:fixed;inset:0;z-index:70;background:rgba(6,6,8,.82);backdrop-filter:blur(4px);
+    display:none;align-items:center;justify-content:center;padding:24px}
+  #help.on{display:flex}
+  .helpcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:640px;width:100%;
+    max-height:88vh;overflow-y:auto;padding:26px 28px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .helpcard h2{color:var(--acc);margin:0 0 4px;font-size:22px}
+  .helpcard .lead{color:var(--dim);margin:0 0 18px;font-size:13.5px}
+  .helpcard ol{margin:0 0 8px;padding-left:22px}
+  .helpcard li{margin:0 0 13px;line-height:1.5}
+  .helpcard li b{color:var(--tx)}
+  .helpcard .k{display:inline-block;background:#0a0a0c;border:1px solid var(--line);border-radius:5px;
+    padding:1px 7px;font:600 12px ui-monospace,monospace;color:var(--acc)}
+  .helpcard .tip{background:#0e130e;border:1px solid #274027;border-radius:9px;padding:11px 13px;margin:14px 0 4px;
+    font-size:13px;color:#bfe6bf}
+  .helpcard .close{margin-top:18px;width:100%;background:var(--acc);color:#111;border:none;border-radius:9px;
+    padding:12px;font:700 14px -apple-system,sans-serif;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="helpbtn" id="helpbtn" title="Como usar esta página">?</button>
+<div id="help">
+  <div class="helpcard">
+    <h2>Bem-vindo — aprovação Entremuros</h2>
+    <p class="lead">Esta página é pra você <b>ver os vídeos do podcast e mandar o que quer mudar</b>. Simples assim:</p>
+    <ol>
+      <li><b>Escolha um vídeo.</b> Na barra da esquerda, clique num episódio pra abrir as pastas (Full, Pockets, Cortes, Chamadas) e clique no vídeo que quer ver.</li>
+      <li><b>Assista.</b> <span class="k">espaço</span> dá play/pause · <span class="k">←</span> <span class="k">→</span> pulam 5s.</li>
+      <li><b>Quer mudar algo?</b> Pause no momento exato e clique em <b>“+ comentário neste momento”</b> (ou aperte a tecla <span class="k">C</span>). Escreva o que quer diferente. Pode comentar <b>vários momentos</b> e <b>vários vídeos</b>.</li>
+      <li><b>Terminou?</b> Clique no botão dourado do topo <b>“💾 salvar e copiar tudo pro editor”</b>. Ele copia um textinho — <b>cole esse texto de volta pra gente</b> e pronto, a gente faz as alterações.</li>
+    </ol>
+    <div class="tip">✅ Se o vídeo estiver bom e você não quiser mudar nada, é só avisar que está aprovado — não precisa comentar.</div>
+    <div class="tip" style="background:#131010;border-color:#402727;color:#e6bfbf">🔒 Cada comentário fica marcado no segundo exato do vídeo, então a gente sabe exatamente onde você quis dizer.</div>
+    <button class="close" id="helpclose">Entendi, bora</button>
+  </div>
+</div>
+<aside>
+  <h1>ENTREMUROS<br><span style="color:var(--dim);font-weight:400;font-size:12px">aprovação de drafts</span></h1>
+  <div id="tree"></div>
+</aside>
+<main>
+  <div class="topbar">
+    <button class="acc big" id="copyall">💾 salvar e copiar tudo pro editor</button>
+    <span class="topinfo" id="topinfo"></span>
+  </div>
+  <div class="stage"><video id="v" controls preload="metadata"></video></div>
+  <div class="bar">
+    <button class="acc" id="addc">+ comentário neste momento &nbsp;(C)</button>
+    <button id="copy">copiar alterações desta peça</button>
+    <button id="wipe">limpar este vídeo</button>
+    <div class="spd" id="spd"></div>
+    <span class="hint">espaço = play · ←/→ = 5s · ⇧←/→ = 1 frame · C = comenta · , / . = velocidade · 0 = 1x</span>
+  </div>
+  <div id="out">
+    <div class="cap">📋 <b>Copiado!</b> É só <b>colar esse texto pro editor</b> — ele usa pra fazer as alterações que você pediu.</div>
+    <div class="ok" id="okmsg"></div>
+    <textarea id="json" readonly></textarea>
+  </div>
+  <div id="list"></div>
+</main>
+<script>
+// ============== catálogo (Claude vai preenchendo a cada draft novo) =========
+// Estrutura: pastas -> subpastas -> vídeos. REGRAS (Gui, r8.3): título = só
+// NOME da peça; data = data/hora do RENDER; peça com ajuste é deletada após o
+// render seguinte (histórico em analysis/AJUSTES_LOG.md) — 1 entrada por
+// peça, sempre a versão atual.
+// CONVENÇÃO DE ID (r8.7, determinística — nunca reaproveitar):
+//   <epN>_<tipo><num>_<qualidade>_r<rodada>   ex.: ep2_corte3_sd_r91
+// O id é a chave do localStorage (comentários) e do cache-busting (?v=id):
+// re-render da mesma peça = MESMO src, id com rodada NOVA. IDs duplicados
+// misturam comentários de rodadas diferentes — proibido.
+const CATALOG = [
+  {folder:"EP1 — Mari Toniolo", children:[
+    {folder:"Full", vids:[
+      {id:"ep1_full_draft_r82loud", src:"renders/ep1_full_draft.mp4",
+       label:"Full", data:"18/07 09:45", tag:"aprovado"},
+    ]},
+    {folder:"Pockets (4)", vids:[
+      {id:"ep1_pocket1_draft_r82", src:"renders/ep1_pocket1_draft_r82.mp4",
+       label:"Pocket 1", data:"18/07 09:40", tag:"aprovado"},
+      {id:"ep1_pocket2_draft_r83", src:"renders/ep1_pocket2_draft.mp4",
+       label:"Pocket 2", data:"18/07 10:40", tag:"aprovado"},
+      {id:"ep1_pocket3_draft_r83", src:"renders/ep1_pocket3_draft.mp4",
+       label:"Pocket 3", data:"18/07 10:41", tag:"aprovado"},
+      {id:"ep1_pocket4_draft_r83", src:"renders/ep1_pocket4_draft.mp4",
+       label:"Pocket 4", data:"18/07 10:42", tag:"aprovado"},
+    ]},
+    {folder:"Cortes verticais (7)", vids:[
+      {id:"ep1_corte1_sd_r84", src:"renders/ep1_corte1_sd.mp4",
+       label:"Corte 1", data:"18/07 13:50", tag:"aprovado"},
+      {id:"ep1_corte2_sd_r84", src:"renders/ep1_corte2_sd.mp4",
+       label:"Corte 2", data:"18/07 13:50", tag:"aprovado"},
+      {id:"ep1_corte3_sd_r85", src:"renders/ep1_corte3_sd.mp4",
+       label:"Corte 3", data:"18/07 14:0x", tag:"aprovado"},
+      {id:"ep1_corte4_sd_r84", src:"renders/ep1_corte4_sd.mp4",
+       label:"Corte 4", data:"18/07 13:51", tag:"aprovado"},
+      {id:"ep1_corte5_sd_r85", src:"renders/ep1_corte5_sd.mp4",
+       label:"Corte 5", data:"18/07 14:0x", tag:"aprovado"},
+      {id:"ep1_corte6_sd_r84", src:"renders/ep1_corte6_sd.mp4",
+       label:"Corte 6", data:"18/07 13:51", tag:"aprovado"},
+      {id:"ep1_corte7_sd_r84", src:"renders/ep1_corte7_sd.mp4",
+       label:"Corte 7", data:"18/07 13:51", tag:"aprovado"},
+    ]},
+    {folder:"Chamadas (3)", vids:[
+      {id:"ep1_chamada_host_sd_r88", src:"renders/ep1_chamada_host_sd.mp4",
+       label:"Chamada — Host", data:"18/07 15:48", tag:"aprovado"},
+      {id:"ep1_chamada_convidada_sd_r88", src:"renders/ep1_chamada_convidada_sd.mp4",
+       label:"Chamada — Convidada", data:"18/07 15:48", tag:"aprovado"},
+      {id:"ep1_chamada_dupla_sd_r88", src:"renders/ep1_chamada_dupla_sd.mp4",
+       label:"Chamada — Dupla", data:"18/07 15:47", tag:"aprovado"},
+    ]},
+  ]},
+  {folder:"EP2 — Irvã Bezerra", children:[
+    {folder:"Full", vids:[
+      {id:"ep2_full_draft_r89", src:"renders/ep2_full_draft.mp4",
+       label:"Full", data:"18/07 18:04", tag:"aprovado"},
+    ]},
+    {folder:"Pockets (5)", vids:[
+      {id:"ep2_pocket1_draft_r89", src:"renders/ep2_pocket1_draft.mp4",
+       label:"Pocket 1", data:"18/07 18:04", tag:"aprovado"},
+      {id:"ep2_pocket2_draft_r91", src:"renders/ep2_pocket2_draft.mp4",
+       label:"Pocket 2", data:"18/07 18:05", tag:"aprovado"},
+      {id:"ep2_pocket3_draft_r89", src:"renders/ep2_pocket3_draft.mp4",
+       label:"Pocket 3", data:"18/07 18:06", tag:"aprovado"},
+      {id:"ep2_pocket4_draft_r89", src:"renders/ep2_pocket4_draft.mp4",
+       label:"Pocket 4", data:"18/07 18:07", tag:"aprovado"},
+      {id:"ep2_pocket5_draft_r91", src:"renders/ep2_pocket5_draft.mp4",
+       label:"Pocket 5", data:"18/07 18:08", tag:"aprovado"},
+    ]},
+    {folder:"Cortes verticais (6)", vids:[
+      {id:"ep2_corte1_sd_r88", src:"renders/ep2_corte1_sd.mp4",
+       label:"Corte 1", data:"18/07 16:20", tag:"aprovado"},
+      {id:"ep2_corte2_sd_r89", src:"renders/ep2_corte2_sd.mp4",
+       label:"Corte 2", data:"18/07 18:14", tag:"aprovado"},
+      {id:"ep2_corte3_sd_r89", src:"renders/ep2_corte3_sd.mp4",
+       label:"Corte 3", data:"18/07 18:10", tag:"aprovado"},
+      {id:"ep2_corte4_sd_r89", src:"renders/ep2_corte4_sd.mp4",
+       label:"Corte 4", data:"18/07 18:10", tag:"aprovado"},
+      {id:"ep2_corte5_sd_r89", src:"renders/ep2_corte5_sd.mp4",
+       label:"Corte 5", data:"18/07 18:14", tag:"aprovado"},
+      {id:"ep2_corte6_sd_r89", src:"renders/ep2_corte6_sd.mp4",
+       label:"Corte 6", data:"18/07 18:14", tag:"aprovado"},
+    ]},
+    {folder:"Chamadas (3)", vids:[
+      {id:"ep2_chamada_host_sd_r89", src:"renders/ep2_chamada_host_sd.mp4",
+       label:"Chamada — Host", data:"18/07 18:16", tag:"aprovado"},
+      {id:"ep2_chamada_convidada_sd_r89", src:"renders/ep2_chamada_convidada_sd.mp4",
+       label:"Chamada — Convidada", data:"18/07 18:16", tag:"aprovado"},
+      {id:"ep2_chamada_dupla_sd_r89", src:"renders/ep2_chamada_dupla_sd.mp4",
+       label:"Chamada — Dupla", data:"18/07 18:16", tag:"aprovado"},
+    ]},
+  ]},
+  {folder:"EP3 — Luciana Freitas", children:[
+    {folder:"Full", vids:[
+      {id:"ep3_full_draft_r90", src:"renders/ep3_full_draft.mp4",
+       label:"Full", data:"18/07 19:52", tag:"aprovado"},
+    ]},
+    {folder:"Pockets (5)", vids:[
+      {id:"ep3_pocket1_draft_r90", src:"renders/ep3_pocket1_draft.mp4",
+       label:"Pocket 1", data:"18/07 19:52", tag:"aprovado"},
+      {id:"ep3_pocket2_draft_r90", src:"renders/ep3_pocket2_draft.mp4",
+       label:"Pocket 2", data:"18/07 19:54", tag:"aprovado"},
+      {id:"ep3_pocket3_draft_r90", src:"renders/ep3_pocket3_draft.mp4",
+       label:"Pocket 3", data:"18/07 19:54", tag:"aprovado"},
+      {id:"ep3_pocket4_draft_r90", src:"renders/ep3_pocket4_draft.mp4",
+       label:"Pocket 4", data:"18/07 19:55", tag:"aprovado"},
+      {id:"ep3_pocket5_draft_r90", src:"renders/ep3_pocket5_draft.mp4",
+       label:"Pocket 5", data:"18/07 19:56", tag:"aprovado"},
+    ]},
+    {folder:"Cortes verticais (5)", vids:[
+      {id:"ep3_corte2_sd_r90", src:"renders/ep3_corte2_sd.mp4",
+       label:"Corte 2", data:"18/07 19:46", tag:"aprovado"},
+      {id:"ep3_corte3_sd_r90", src:"renders/ep3_corte3_sd.mp4",
+       label:"Corte 3", data:"18/07 19:46", tag:"aprovado"},
+      {id:"ep3_corte4_sd_r90", src:"renders/ep3_corte4_sd.mp4",
+       label:"Corte 4", data:"18/07 19:47", tag:"aprovado"},
+      {id:"ep3_corte5_sd_r90", src:"renders/ep3_corte5_sd.mp4",
+       label:"Corte 5", data:"18/07 19:47", tag:"aprovado"},
+      {id:"ep3_corte6_sd_r90", src:"renders/ep3_corte6_sd.mp4",
+       label:"Corte 6", data:"18/07 19:47", tag:"aprovado"},
+    ]},
+    {folder:"Chamadas (3)", vids:[
+      {id:"ep3_chamada_host_sd_r90", src:"renders/ep3_chamada_host_sd.mp4",
+       label:"Chamada — Host", data:"18/07 18:32", tag:"aprovado"},
+      {id:"ep3_chamada_convidada_sd_r90", src:"renders/ep3_chamada_convidada_sd.mp4",
+       label:"Chamada — Convidada", data:"18/07 18:32", tag:"aprovado"},
+      {id:"ep3_chamada_dupla_sd_r90", src:"renders/ep3_chamada_dupla_sd.mp4",
+       label:"Chamada — Dupla", data:"18/07 18:32", tag:"aprovado"},
+    ]},
+  ]},
+  {folder:"EP4 — Leandro Cássio", children:[
+    {folder:"Full", vids:[
+      {id:"ep4_full_draft_r90", src:"renders/ep4_full_draft.mp4",
+       label:"Full", data:"18/07 19:24", tag:"aprovado"},
+    ]},
+    {folder:"Pockets (5)", vids:[
+      {id:"ep4_pocket1_draft_r90", src:"renders/ep4_pocket1_draft.mp4",
+       label:"Pocket 1", data:"18/07 19:41", tag:"aprovado"},
+      {id:"ep4_pocket2_draft_r90", src:"renders/ep4_pocket2_draft.mp4",
+       label:"Pocket 2", data:"18/07 19:42", tag:"aprovado"},
+      {id:"ep4_pocket3_draft_r90", src:"renders/ep4_pocket3_draft.mp4",
+       label:"Pocket 3", data:"18/07 19:43", tag:"aprovado"},
+      {id:"ep4_pocket4_draft_r90", src:"renders/ep4_pocket4_draft.mp4",
+       label:"Pocket 4", data:"18/07 19:44", tag:"aprovado"},
+      {id:"ep4_pocket5_draft_r90", src:"renders/ep4_pocket5_draft.mp4",
+       label:"Pocket 5", data:"18/07 19:45", tag:"aprovado"},
+    ]},
+    {folder:"Cortes verticais (5)", vids:[
+      {id:"ep4_corte1_sd_r90", src:"renders/ep4_corte1_sd.mp4",
+       label:"Corte 1", data:"18/07 19:18", tag:"aprovado"},
+      {id:"ep4_corte2_sd_r90", src:"renders/ep4_corte2_sd.mp4",
+       label:"Corte 2", data:"18/07 19:45", tag:"aprovado"},
+      {id:"ep4_corte3_sd_r90", src:"renders/ep4_corte3_sd.mp4",
+       label:"Corte 3", data:"18/07 19:45", tag:"aprovado"},
+      {id:"ep4_corte4_sd_r90", src:"renders/ep4_corte4_sd.mp4",
+       label:"Corte 4", data:"18/07 19:45", tag:"aprovado"},
+      {id:"ep4_corte5_sd_r90", src:"renders/ep4_corte5_sd.mp4",
+       label:"Corte 5", data:"18/07 19:46", tag:"aprovado"},
+    ]},
+    {folder:"Chamadas (3)", vids:[
+      {id:"ep4_chamada_host_sd_r90", src:"renders/ep4_chamada_host_sd.mp4",
+       label:"Chamada — Host", data:"18/07 18:34", tag:"aprovado"},
+      {id:"ep4_chamada_convidado_sd_r90", src:"renders/ep4_chamada_convidado_sd.mp4",
+       label:"Chamada — Convidado", data:"18/07 18:34", tag:"aprovado"},
+      {id:"ep4_chamada_dupla_sd_r90", src:"renders/ep4_chamada_dupla_sd.mp4",
+       label:"Chamada — Dupla", data:"18/07 18:34", tag:"aprovado"},
+    ]},
+  ]},
+];
+// ============================================================================
+// PUB_BASE: vazio = abre local (usa renders/…); o publish_aprovacao.py injeta a
+// URL pública (GitHub Pages/R2) na cópia que sobe pra aprovação externa.
+const PUB_BASE="https://github.com/guivoze/entremuros-aprovacao/releases/download/media/";
+const $=s=>document.querySelector(s);
+const v=$("#v"); let cur=null;
+const FPS=29.97;
+const srcOf=vd=>PUB_BASE?(PUB_BASE+vd.id+".mp4"):vd.src;  // deploy: 1 asset por id
+const DEPLOY=!!PUB_BASE;
+const PUB_ONLY=["ep2_pocket2_draft_r91","ep2_pocket5_draft_r91","ep3_full_draft_r90","ep3_pocket1_draft_r90","ep3_pocket2_draft_r90","ep3_pocket3_draft_r90","ep3_pocket4_draft_r90","ep3_pocket5_draft_r90","ep3_corte2_sd_r90","ep3_corte3_sd_r90","ep3_corte4_sd_r90","ep3_corte5_sd_r90","ep3_corte6_sd_r90","ep3_chamada_host_sd_r90","ep3_chamada_convidada_sd_r90","ep3_chamada_dupla_sd_r90","ep4_full_draft_r90","ep4_pocket1_draft_r90","ep4_pocket2_draft_r90","ep4_pocket3_draft_r90","ep4_pocket4_draft_r90","ep4_pocket5_draft_r90","ep4_corte1_sd_r90","ep4_corte2_sd_r90","ep4_corte3_sd_r90","ep4_corte4_sd_r90","ep4_corte5_sd_r90","ep4_chamada_host_sd_r90","ep4_chamada_convidado_sd_r90","ep4_chamada_dupla_sd_r90","ep1_full_draft_r82loud","ep1_pocket1_draft_r82","ep1_pocket2_draft_r83","ep1_pocket3_draft_r83","ep1_pocket4_draft_r83","ep1_corte1_sd_r84","ep1_corte2_sd_r84","ep1_corte3_sd_r85","ep1_corte4_sd_r84","ep1_corte5_sd_r85","ep1_corte6_sd_r84","ep1_corte7_sd_r84","ep1_chamada_host_sd_r88","ep1_chamada_convidada_sd_r88","ep1_chamada_dupla_sd_r88","ep2_full_draft_r89","ep2_pocket1_draft_r89","ep2_pocket3_draft_r89","ep2_pocket4_draft_r89","ep2_corte1_sd_r88","ep2_corte2_sd_r89","ep2_corte3_sd_r89","ep2_corte4_sd_r89","ep2_corte5_sd_r89","ep2_corte6_sd_r89","ep2_chamada_host_sd_r89","ep2_chamada_convidada_sd_r89","ep2_chamada_dupla_sd_r89"];  // deploy: ids visíveis externamente (publish_aprovacao.py injeta)
+const visible=vd=>!DEPLOY||!PUB_ONLY.length||PUB_ONLY.includes(vd.id);
+const key=id=>"aprov_"+id;
+const load=id=>{try{return JSON.parse(localStorage.getItem(key(id))||"[]")}catch(e){return[]}};
+const save=(id,c)=>localStorage.setItem(key(id),JSON.stringify(c));
+const tc=t=>{const m=Math.floor(t/60),s=(t%60);return m+":"+(s<10?"0":"")+s.toFixed(1)};
+const allVids=()=>{const out=[];for(const f of CATALOG)for(const sf of (f.children||[]))for(const vd of (sf.vids||[]))if(visible(vd))out.push(vd);return out;};
+
+const OPEN_KEY="aprov_open_folders";
+// Gui r9.2: SEMPRE colapsado ao abrir a página (não restaura estado salvo) —
+// só fica bagunçado. Quem estiver usando expande na hora; expansões valem só
+// na sessão (openSet em memória).
+const openSet=new Set();
+function persistOpen(){localStorage.setItem(OPEN_KEY,JSON.stringify([...openSet]));}
+
+function renderTree(){
+  const box=$("#tree"); box.innerHTML="";
+  for(const f of CATALOG){
+    const nf=(f.children||[]).reduce((a,sf)=>a+(sf.vids||[]).reduce((b,vd)=>b+(visible(vd)?load(vd.id).length:0),0),0);
+    const d=document.createElement("details");
+    const fk="f:"+f.folder;
+    d.open=openSet.has(fk);
+    const s=document.createElement("summary");
+    s.innerHTML=f.folder+(nf?`<span class="n">${nf}</span>`:"");
+    d.appendChild(s);
+    d.addEventListener("toggle",()=>{d.open?openSet.add(fk):openSet.delete(fk);persistOpen();});
+    for(const sf of (f.children||[])){
+      const vv=(sf.vids||[]).filter(visible);
+      const sd=document.createElement("details");
+      const sk="f:"+f.folder+"/"+sf.folder;
+      sd.open=openSet.has(sk);
+      const ss=document.createElement("summary");
+      const ns=vv.reduce((a,vd)=>a+load(vd.id).length,0);
+      ss.innerHTML=sf.folder+(ns?`<span class="n">${ns}</span>`:"");
+      sd.appendChild(ss);
+      sd.addEventListener("toggle",()=>{sd.open?openSet.add(sk):openSet.delete(sk);persistOpen();});
+      if(!vv.length){
+        const e=document.createElement("div");e.className="vid";e.style.cursor="default";
+        e.innerHTML="<span class='meta'>— em breve —</span>";sd.appendChild(e);
+      }
+      for(const vd of vv){
+        const n=load(vd.id).length;
+        const e=document.createElement("div");
+        e.className="vid"+(cur&&cur.id===vd.id?" on":"");
+        e.innerHTML=vd.label+((vd.tag&&!DEPLOY)?`<span class="tag ${vd.tag}">${vd.tag.toUpperCase()}</span>`:"")
+          +(n?`<span class="n">${n}</span>`:"")
+          +`<span class="meta">${vd.data}</span>`;
+        e.onclick=()=>pick(vd);
+        sd.appendChild(e);
+      }
+      d.appendChild(sd);
+    }
+    box.appendChild(d);
+  }
+  updateTopInfo();
+}
+function renderList(){
+  const box=$("#list"); box.innerHTML="";
+  if(!cur) return;
+  const cs=load(cur.id).sort((a,b)=>a.t-b.t);
+  for(const c of cs){
+    const d=document.createElement("div"); d.className="c";
+    const t=document.createElement("span"); t.className="tc"; t.textContent=tc(c.t);
+    t.onclick=()=>{v.currentTime=c.t; v.pause();};
+    const ta=document.createElement("textarea"); ta.value=c.texto; ta.placeholder="escreve o ajuste aqui…";
+    ta.oninput=()=>{c.texto=ta.value; persist(cs); updateTopInfo();};
+    const x=document.createElement("span"); x.className="x"; x.textContent="✕";
+    x.onclick=()=>{persist(cs.filter(o=>o!==c)); renderList(); renderTree();};
+    d.append(t,ta,x); box.appendChild(d);
+  }
+}
+function persist(cs){ if(cur) save(cur.id,cs); }
+function pick(vd){
+  cur=vd; v.src=srcOf(vd)+"?v="+encodeURIComponent(vd.id); $("#out").style.display="none";
+  renderTree(); renderList();
+}
+function updateTopInfo(){
+  let pec=0,com=0;
+  for(const vd of allVids()){const n=load(vd.id).filter(c=>(c.texto||"").trim()).length; if(n){pec++;com+=n;}}
+  const el=$("#topinfo"); if(!el) return;
+  el.innerHTML = com ? `<b>${com}</b> alteração(ões) marcada(s) em <b>${pec}</b> peça(s)` : "nenhuma alteração marcada ainda";
+}
+function addComment(){
+  if(!cur) return;
+  v.pause();
+  const cs=load(cur.id);
+  cs.push({t:Math.round(v.currentTime*10)/10, texto:""});
+  save(cur.id,cs); renderList(); renderTree();
+  const tas=$("#list").querySelectorAll("textarea");
+  // foca o comentário recém-criado (ordenado por tempo)
+  const idx=load(cur.id).sort((a,b)=>a.t-b.t).findIndex(c=>c.t===Math.round(v.currentTime*10)/10);
+  if(tas[idx]) tas[idx].focus();
+}
+$("#addc").onclick=addComment;
+async function copyOut(s,msg){
+  $("#json").value=s; $("#out").style.display="block";
+  $("#out").scrollIntoView({behavior:"smooth",block:"nearest"});
+  try{await navigator.clipboard.writeText(s); $("#okmsg").textContent=msg;}
+  catch(e){$("#okmsg").textContent="não deu pra copiar sozinho — seleciona o texto abaixo e copia (⌘C):";}
+}
+// copia SÓ a peça aberta
+$("#copy").onclick=async()=>{
+  if(!cur) return;
+  const cs=load(cur.id).sort((a,b)=>a.t-b.t).filter(c=>c.texto.trim());
+  const payload={video:cur.id, arquivo:cur.src, label:cur.label, gerado_em:new Date().toISOString(),
+                 comentarios:cs.map(c=>({t:c.t, tc:tc(c.t), texto:c.texto.trim()}))};
+  copyOut(JSON.stringify(payload,null,1),
+    cs.length?`copiado — ${cs.length} alteração(ões) nesta peça. Cola pro editor.`
+             :"nenhuma alteração nesta peça ainda.");
+};
+// copia TUDO (todas as peças com ajuste) num JSON só
+$("#copyall").onclick=async()=>{
+  const pecas=[];
+  for(const vd of allVids()){
+    const cs=load(vd.id).sort((a,b)=>a.t-b.t).filter(c=>c.texto.trim());
+    if(cs.length) pecas.push({video:vd.id, arquivo:vd.src, label:vd.label,
+      comentarios:cs.map(c=>({t:c.t, tc:tc(c.t), texto:c.texto.trim()}))});
+  }
+  const totalC=pecas.reduce((a,p)=>a+p.comentarios.length,0);
+  const payload={projeto:"Entremuros", gerado_em:new Date().toISOString(),
+    total_pecas:pecas.length, total_comentarios:totalC, pecas};
+  copyOut(JSON.stringify(payload,null,1),
+    pecas.length?`copiado TUDO — ${totalC} alteração(ões) em ${pecas.length} peça(s). Manda esse texto pro editor.`
+                :"nenhuma alteração marcada em nenhuma peça ainda.");
+};
+$("#wipe").onclick=()=>{ if(cur&&confirm("apagar todos os comentários deste vídeo?")){save(cur.id,[]);renderList();renderTree();} };
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="TEXTAREA") return;
+  if(e.code==="Space"){e.preventDefault(); v.paused?v.play():v.pause();}
+  else if(e.key==="ArrowLeft"){e.preventDefault(); v.currentTime-=e.shiftKey?1/FPS:5;}
+  else if(e.key==="ArrowRight"){e.preventDefault(); v.currentTime+=e.shiftKey?1/FPS:5;}
+  else if(e.key==="c"||e.key==="C"){e.preventDefault(); addComment();}
+});
+// ---- velocidade (Chrome nativo trava em 2x; via code vai além — áudio pode
+// mutar acima de ~4x, é limitação do browser)
+const SPEEDS=[1,1.25,1.5,2,2.5,3,4,8];
+let speed=parseFloat(localStorage.getItem("aprov_speed")||"1");
+function applySpeed(sp){
+  speed=sp; v.playbackRate=sp; localStorage.setItem("aprov_speed",String(sp));
+  document.querySelectorAll("#spd button").forEach(b=>b.classList.toggle("on",parseFloat(b.dataset.s)===sp));
+}
+for(const sp of SPEEDS){
+  const b=document.createElement("button"); b.dataset.s=sp; b.textContent=sp+"x";
+  b.onclick=()=>applySpeed(sp); $("#spd").appendChild(b);
+}
+v.addEventListener("loadedmetadata",()=>{v.playbackRate=speed});
+v.addEventListener("ratechange",()=>{ // menu nativo (max 2x) não rebaixa a escolha custom
+  if(Math.abs(v.playbackRate-speed)>0.01 && v.playbackRate<=2 && speed>2) v.playbackRate=speed;
+});
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="TEXTAREA") return;
+  const i=SPEEDS.indexOf(speed);
+  if(e.key===".")      {e.preventDefault(); applySpeed(SPEEDS[Math.min(SPEEDS.length-1,i+1)]);}
+  else if(e.key===","){e.preventDefault(); applySpeed(SPEEDS[Math.max(0,i-1)]);}
+  else if(e.key==="0"){e.preventDefault(); applySpeed(1);}
+});
+// abre no draft NOVO mais recente (tag "novo"); senão, no primeiro
+renderTree();
+const novos=allVids().filter(x=>x.tag==="novo");
+if(novos.length) pick(novos[novos.length-1]); else if(allVids().length) pick(allVids()[0]);
+applySpeed(speed);
+
+// r9.2 (Gui): home explicativa — aparece ao abrir (1x por navegador) + botão "?"
+const HELP_KEY="aprov_help_seen_v1";
+const helpEl=$("#help");
+function showHelp(){ helpEl.classList.add("on"); }
+function hideHelp(){ helpEl.classList.remove("on"); try{localStorage.setItem(HELP_KEY,"1");}catch(e){} }
+$("#helpbtn").onclick=showHelp;
+$("#helpclose").onclick=hideHelp;
+helpEl.addEventListener("click",e=>{ if(e.target===helpEl) hideHelp(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&helpEl.classList.contains("on")) hideHelp(); });
+try{ if(!localStorage.getItem(HELP_KEY)) showHelp(); }catch(e){ showHelp(); }
+</script>
+</body>
+</html>
